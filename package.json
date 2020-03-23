@@ -1,0 +1,23 @@
+{
+  "name": "apple-music-web-api",
+  "version": "0.1.4",
+  "description": "Apple Music API SDK for JS",
+  "main": "lib/index.js",
+  "files": [
+    "lib/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "deploy": "yarn build && yarn publish",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jamie Day <jamie@jamieday.ca> (http://jamieday.ca)",
+  "license": "GPL-3.0+",
+  "devDependencies": {
+    "@types/node": "^13.9.3",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "axios": "^0.19.2"
+  }
+}
