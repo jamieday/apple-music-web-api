@@ -32,6 +32,7 @@ export const initializeAppleMusicApi = (
     let page;
     do {
       page = await callApi<PageResponse<T>>(endpoint, options);
+      endpoint = page.next;
       yield* page.data;
     } while (page.next);
   };
