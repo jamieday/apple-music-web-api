@@ -15,7 +15,8 @@ export const initializeAppleMusicApi = (
     endpoint: string,
     options?: CallApiOptions
   ): Promise<T> => {
-    const response = await axios.get(`https://api.music.apple.com${endpoint}`, {
+    const response = await axios.request({
+      url: `https://api.music.apple.com${endpoint}`,
       method: options?.method ?? "GET",
       data: options?.data,
       headers: {
