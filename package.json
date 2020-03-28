@@ -1,6 +1,6 @@
 {
   "name": "apple-music-web-api",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Apple Music API SDK for JS",
   "main": "lib/index.js",
   "files": [
