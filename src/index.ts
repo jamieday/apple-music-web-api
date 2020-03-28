@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Song, ListResponse } from "./Song";
 import { PageResponse, Playlist } from "./Playlist";
+import { Storefront } from "./Storefront";
 
 type CallApiOptions = {
   method: "GET" | "POST";
@@ -41,14 +42,16 @@ export const initializeAppleMusicApi = (
   return appleMusicApi(callApi, pageApi);
 };
 
-const storefront = "us";
-
 type TrackPayload = { id: string; type: string };
 
 type AppleMusicApiInterface = {
-  fetchSong: (id: string) => Promise<Song>;
-  fetchSongs: (ids: string[]) => Promise<ListResponse<Song>>;
+  fetchSong: (storefront: string, id: string) => Promise<Song>;
+  fetchSongs: (
+    storefront: string,
+    ids: string[]
+  ) => Promise<ListResponse<Song>>;
 
+  getMyStorefront: (userToken: string) => Promise<ListResponse<Storefront>>;
   fetchLibraryPlaylists: (userToken: string) => AsyncIterableIterator<Playlist>;
   createPlaylist: (
     userToken: string,
@@ -63,7 +66,6 @@ type AppleMusicApiInterface = {
     playlistId: string,
     tracks: TrackPayload[]
   ) => Promise<ListResponse<any>>;
-  //     /v1/me/library/playlists/{id}/tracks
 };
 
 const appleMusicApi = (
@@ -73,13 +75,23 @@ const appleMusicApi = (
     options?: CallApiOptions
   ) => AsyncIterableIterator<T>
 ): AppleMusicApiInterface => ({
-  fetchSong: id => callApi(`/v1/catalog/${storefront}/songs/${id}`),
-  fetchSongs: ids =>
+  fetchSong: (storefront, id) =>
     callApi(
-      `/v1/catalog/${storefront}/songs?ids=${ids
+      `/v1/catalog/${encodeURIComponent(storefront)}/songs/${encodeURIComponent(
+        id
+      )}`
+    ),
+  fetchSongs: (storefront, ids) =>
+    callApi(
+      `/v1/catalog/${encodeURIComponent(storefront)}/songs?ids=${ids
         .map(encodeURIComponent)
         .join(",")}`
     ),
+  getMyStorefront: userToken =>
+    callApi("/v1/me/storefront", {
+      method: "GET",
+      userToken
+    }),
   fetchLibraryPlaylists: userToken =>
     pageApi("/v1/me/library/playlists", { method: "GET", userToken }),
   createPlaylist: (userToken, attributes, initialTracks) =>
