@@ -74,3 +74,11 @@ export type Song = {
 export type ListResponse<T> = {
   data: T[];
 };
+
+export type SongSearchResponse = {
+  results: {
+    songs: {
+      data: Song[];
+    };
+  };
+};

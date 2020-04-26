@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Song, ListResponse } from "./Song";
+import { Song, ListResponse, SongSearchResponse } from "./Song";
 import { PageResponse, Playlist } from "./Playlist";
 import { Storefront } from "./Storefront";
 
@@ -22,12 +22,12 @@ export const initializeAppleMusicApi = (
       data: options?.data,
       headers: {
         Authorization: `Bearer ${developerToken}`,
-        ...(options?.userToken && { "Music-User-Token": options.userToken })
-      }
+        ...(options?.userToken && { "Music-User-Token": options.userToken }),
+      },
     });
     return response.data;
   };
-  const pageApi = async function*<T>(
+  const pageApi = async function* <T>(
     endpoint: string,
     options?: CallApiOptions
   ) {
@@ -50,6 +50,10 @@ type AppleMusicApiInterface = {
     storefront: string,
     ids: string[]
   ) => Promise<ListResponse<Song>>;
+  searchSongs: (
+    storefront: string,
+    payload: { query: string; limit: number }
+  ) => Promise<SongSearchResponse>;
 
   getMyStorefront: (userToken: string) => Promise<ListResponse<Storefront>>;
   fetchLibraryPlaylists: (userToken: string) => AsyncIterableIterator<Playlist>;
@@ -87,12 +91,18 @@ const appleMusicApi = (
         .map(encodeURIComponent)
         .join(",")}`
     ),
-  getMyStorefront: userToken =>
+  searchSongs: (storefront, { query, limit }) =>
+    callApi(
+      `/v1/catalog/${encodeURIComponent(
+        storefront
+      )}/search?term=${encodeURIComponent(query)}&limit=${limit}&types=songs`
+    ),
+  getMyStorefront: (userToken) =>
     callApi("/v1/me/storefront", {
       method: "GET",
-      userToken
+      userToken,
     }),
-  fetchLibraryPlaylists: userToken =>
+  fetchLibraryPlaylists: (userToken) =>
     pageApi("/v1/me/library/playlists", { method: "GET", userToken }),
   createPlaylist: (userToken, attributes, initialTracks) =>
     callApi("/v1/me/library/playlists", {
@@ -102,10 +112,10 @@ const appleMusicApi = (
         attributes,
         relationships: {
           tracks: {
-            data: initialTracks
-          }
-        }
-      }
+            data: initialTracks,
+          },
+        },
+      },
     }),
   addTracksToPlaylist: (userToken, playlistId, tracks) =>
     callApi(
@@ -114,8 +124,8 @@ const appleMusicApi = (
         method: "POST",
         userToken,
         data: {
-          data: tracks.map(({ id, type }) => ({ id, type }))
-        }
+          data: tracks.map(({ id, type }) => ({ id, type })),
+        },
       }
-    )
+    ),
 });
