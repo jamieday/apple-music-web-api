@@ -55,6 +55,11 @@ type AppleMusicApiInterface = {
     payload: { query: string; limit: number }
   ) => Promise<SongSearchResponse>;
 
+  searchSongByIsrc: (
+    storefront: string,
+    isrc: string
+  ) => Promise<SongSearchResponse>;
+
   getMyStorefront: (userToken: string) => Promise<ListResponse<Storefront>>;
   fetchLibraryPlaylists: (userToken: string) => AsyncIterableIterator<Playlist>;
   createPlaylist: (
@@ -96,6 +101,10 @@ const appleMusicApi = (
       `/v1/catalog/${encodeURIComponent(
         storefront
       )}/search?term=${encodeURIComponent(query)}&limit=${limit}&types=songs`
+    ),
+  searchSongByIsrc: (storefront, isrc) =>
+    callApi(
+      `/v1/catalog/${storefront}/songs?filter[isrc]=${encodeURIComponent(isrc)}`
     ),
   getMyStorefront: (userToken) =>
     callApi("/v1/me/storefront", {
