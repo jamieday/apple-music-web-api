@@ -1,13 +1,13 @@
-export type Attributes = {
+export type AppleMusicStorefrontAttributes = {
   supportedLanguageTags: string[];
   defaultLanguageTag: string;
   explicitContentPolicy: string;
   name: string;
 };
 
-export type Storefront = {
+export type AppleMusicStorefront = {
   id: string;
   type: string;
   href: string;
-  attributes: Attributes;
+  attributes: AppleMusicStorefrontAttributes;
 };

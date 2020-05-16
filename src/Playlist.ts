@@ -1,30 +1,20 @@
-export type PlayParams = {
+export type AppleMusicPlaylistPlayParams = {
   id: string;
   kind: string;
   isLibrary: boolean;
 };
 
-export type Attributes = {
-  playParams: PlayParams;
+export type AppleMusicPlaylistAttributes = {
+  playParams: AppleMusicPlaylistPlayParams;
   canEdit: boolean;
   hasCatalog: boolean;
   dateAdded: Date;
   name: string;
 };
 
-export type Playlist = {
+export type AppleMusicPlaylist = {
   id: string;
   type: string;
   href: string;
-  attributes: Attributes;
-};
-
-export type Meta = {
-  total: number;
-};
-
-export type PageResponse<T> = {
-  next: string;
-  data: T[];
-  meta: Meta;
+  attributes: AppleMusicPlaylistAttributes;
 };
