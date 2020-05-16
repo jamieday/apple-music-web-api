@@ -57,12 +57,12 @@ const appleMusicApi = (
       method: "GET",
       userToken,
     });
-  const getSong = (storefront: string, id: string): Promise<Song> =>
-    callApi(
+  const getSong = (storefront: string, id: string): Promise<Song | undefined> =>
+    callApi<ListResponse<Song>>(
       `/v1/catalog/${encodeURIComponent(storefront)}/songs/${encodeURIComponent(
         id
       )}`
-    );
+    ).then((songs) => (songs.data.length > 0 ? songs.data[0] : undefined));
   const getSongs = (
     storefront: string,
     ids: string[]
