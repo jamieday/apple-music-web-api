@@ -1,3 +1,5 @@
+// Should folderize at some point
+
 export type Preview = {
   url: string;
 };
@@ -75,7 +77,7 @@ export type ListResponse<T> = {
   data: T[];
 };
 
-export type SongSearchResponse = {
+export type CatalogSearchResponse = {
   results: {
     songs: {
       data: Song[];

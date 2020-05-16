@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Song, ListResponse, SongSearchResponse } from "./Song";
+import { Song, ListResponse, CatalogSearchResponse } from "./Models";
 import { PageResponse, Playlist } from "./Playlist";
 import { Storefront } from "./Storefront";
 
@@ -9,9 +9,8 @@ type CallApiOptions = {
   data?: any;
 };
 
-export const initializeAppleMusicApi = (
-  developerToken: string
-): AppleMusicApiInterface => {
+// weird, should do something more node-js-module-idiomatic
+export const initializeAppleMusicApi = (developerToken: string) => {
   const callApi = async <T>(
     endpoint: string,
     options?: CallApiOptions
@@ -44,76 +43,63 @@ export const initializeAppleMusicApi = (
 
 type TrackPayload = { id: string; type: string };
 
-type AppleMusicApiInterface = {
-  fetchSong: (storefront: string, id: string) => Promise<Song>;
-  fetchSongs: (
-    storefront: string,
-    ids: string[]
-  ) => Promise<ListResponse<Song>>;
-  searchSongs: (
-    storefront: string,
-    payload: { query: string; limit: number }
-  ) => Promise<SongSearchResponse>;
-
-  searchSongByIsrc: (
-    storefront: string,
-    isrc: string
-  ) => Promise<SongSearchResponse>;
-
-  getMyStorefront: (userToken: string) => Promise<ListResponse<Storefront>>;
-  fetchLibraryPlaylists: (userToken: string) => AsyncIterableIterator<Playlist>;
-  createPlaylist: (
-    userToken: string,
-    attributes: {
-      name: string;
-      description: string;
-    },
-    initialTracks: TrackPayload[]
-  ) => Promise<void>;
-  addTracksToPlaylist: (
-    userToken: string,
-    playlistId: string,
-    tracks: TrackPayload[]
-  ) => Promise<ListResponse<any>>;
-};
-
 const appleMusicApi = (
   callApi: <T>(endpoint: string, options?: CallApiOptions) => Promise<T>,
   pageApi: <T>(
     endpoint: string,
     options?: CallApiOptions
   ) => AsyncIterableIterator<T>
-): AppleMusicApiInterface => ({
-  fetchSong: (storefront, id) =>
+) => {
+  const getMyStorefront = (
+    userToken: string
+  ): Promise<ListResponse<Storefront>> =>
+    callApi("/v1/me/storefront", {
+      method: "GET",
+      userToken,
+    });
+  const getSong = (storefront: string, id: string): Promise<Song> =>
     callApi(
       `/v1/catalog/${encodeURIComponent(storefront)}/songs/${encodeURIComponent(
         id
       )}`
-    ),
-  fetchSongs: (storefront, ids) =>
+    );
+  const getSongs = (
+    storefront: string,
+    ids: string[]
+  ): Promise<ListResponse<Song>> =>
     callApi(
       `/v1/catalog/${encodeURIComponent(storefront)}/songs?ids=${ids
         .map(encodeURIComponent)
         .join(",")}`
-    ),
-  searchSongs: (storefront, { query, limit }) =>
+    );
+  const getSongsByIsrc = (
+    storefront: string,
+    isrc: string
+  ): Promise<ListResponse<Song>> =>
+    callApi(
+      `/v1/catalog/${encodeURIComponent(
+        storefront
+      )}/songs?filter[isrc]=${encodeURIComponent(isrc)}`
+    );
+  const searchSongs = (
+    storefront: string,
+    { query, limit }: { query: string; limit: number }
+  ): Promise<CatalogSearchResponse> =>
     callApi(
       `/v1/catalog/${encodeURIComponent(
         storefront
       )}/search?term=${encodeURIComponent(query)}&limit=${limit}&types=songs`
-    ),
-  searchSongByIsrc: (storefront, isrc) =>
-    callApi(
-      `/v1/catalog/${storefront}/songs?filter[isrc]=${encodeURIComponent(isrc)}`
-    ),
-  getMyStorefront: (userToken) =>
-    callApi("/v1/me/storefront", {
-      method: "GET",
-      userToken,
-    }),
-  fetchLibraryPlaylists: (userToken) =>
-    pageApi("/v1/me/library/playlists", { method: "GET", userToken }),
-  createPlaylist: (userToken, attributes, initialTracks) =>
+    );
+  const getMyPlaylists = (userToken: string): AsyncIterableIterator<Playlist> =>
+    pageApi("/v1/me/library/playlists", { method: "GET", userToken });
+  const createPlaylist = (
+    userToken: string,
+    attributes: {
+      name: string;
+      description: string;
+    },
+    initialTracks: TrackPayload[]
+  ): Promise<void> =>
     callApi("/v1/me/library/playlists", {
       method: "POST",
       userToken,
@@ -125,8 +111,12 @@ const appleMusicApi = (
           },
         },
       },
-    }),
-  addTracksToPlaylist: (userToken, playlistId, tracks) =>
+    });
+  const addTracksToPlaylist = (
+    userToken: string,
+    playlistId: string,
+    tracks: TrackPayload[]
+  ): Promise<ListResponse<any>> =>
     callApi(
       `/v1/me/library/playlists/${encodeURIComponent(playlistId)}/tracks`,
       {
@@ -136,5 +126,20 @@ const appleMusicApi = (
           data: tracks.map(({ id, type }) => ({ id, type })),
         },
       }
-    ),
-});
+    );
+  return {
+    // Storefront
+    getMyStorefront,
+
+    // Songs
+    getSong,
+    getSongs,
+    getSongsByIsrc,
+    searchSongs,
+
+    // Playlists
+    getMyPlaylists,
+    createPlaylist,
+    addTracksToPlaylist,
+  };
+};
